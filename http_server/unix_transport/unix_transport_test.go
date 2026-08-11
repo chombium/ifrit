@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/nu7hatch/gouuid"
-	. "github.com/onsi/ginkgo"
+	"github.com/google/uuid"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
@@ -32,8 +32,7 @@ var _ = Describe("Unix transport", func() {
 		)
 
 		BeforeEach(func() {
-			uuid, err := uuid.NewV4()
-			Expect(err).NotTo(HaveOccurred())
+			uuid := uuid.New()
 
 			socket = fmt.Sprintf("/tmp/%s.sock", uuid)
 			unixSocketListener, err = net.Listen("unix", socket)

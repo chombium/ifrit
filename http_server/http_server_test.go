@@ -9,7 +9,7 @@ import (
 	"path"
 	"syscall"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/http_server"
@@ -33,7 +33,7 @@ var _ = Describe("HttpServer", func() {
 	BeforeEach(func() {
 		startedRequestChan = make(chan struct{}, 1)
 		finishRequestChan = make(chan struct{}, 1)
-		port := 8000 + GinkgoParallelNode()
+		port := 8000 + GinkgoParallelProcess()
 		address = fmt.Sprintf("127.0.0.1:%d", port)
 	})
 

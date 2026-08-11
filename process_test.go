@@ -3,7 +3,7 @@ package ifrit_test
 import (
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/test_helpers"
@@ -62,9 +62,8 @@ var _ = Describe("Process", func() {
 	Context("when a process exits without closing ready", func() {
 		var proc ifrit.Process
 
-		BeforeEach(func(done Done) {
+		BeforeEach(func() {
 			proc = ifrit.Invoke(test_helpers.NoReadyRunner)
-			close(done)
 		})
 
 		It("waits normally", func() {

@@ -1,13 +1,28 @@
 module github.com/tedsuo/ifrit
 
-go 1.16
+go 1.25.0
 
 require (
-	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
-	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/ginkgo/v2 v2.9.4
-	github.com/onsi/gomega v1.27.6
-	golang.org/x/net v0.10.0
-	google.golang.org/grpc v1.55.0
-	google.golang.org/grpc/examples v0.0.0-20230512210959-5dcfb37c0b43
+	github.com/google/uuid v1.6.0
+	github.com/onsi/ginkgo/v2 v2.32.1
+	github.com/onsi/gomega v1.42.1
+	golang.org/x/net v0.57.0
+	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc/examples v0.0.0-20260810183524-1f4c6f36b067
+)
+
+require (
+	github.com/Masterminds/semver/v3 v3.4.0 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936 // indirect
+	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/mod v0.37.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/tools v0.47.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
