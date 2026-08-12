@@ -1,11 +1,13 @@
 package grpc_server_test
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"os"
 	"path"
@@ -15,7 +17,6 @@ import (
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
 	"github.com/tedsuo/ifrit/grpc_server"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
@@ -38,7 +39,7 @@ var _ = Describe("GRPCServer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		tlsConfig = &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: true, //nolint:gosec
 			Certificates:       []tls.Certificate{tlsCert},
 		}
 
@@ -95,7 +96,8 @@ var _ = Describe("GRPCServer", func() {
 		})
 
 		It("serves on the listen address", func() {
-			conn, err := grpc.NewClient(listenAddress, grpc.WithInsecure())
+
+			conn, err := grpc.NewClient(listenAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			Expect(err).NotTo(HaveOccurred())
 
 			helloClient := helloworld.NewGreeterClient(conn)

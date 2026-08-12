@@ -3,7 +3,7 @@ package http_server_test
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -26,7 +26,7 @@ var _ = Describe("HttpServer", func() {
 		handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startedRequestChan <- struct{}{}
 			<-finishRequestChan
-			w.Write([]byte("yo"))
+			w.Write([]byte("yo")) //nolint:errcheck
 		})
 	)
 
@@ -46,10 +46,10 @@ var _ = Describe("HttpServer", func() {
 
 			BeforeEach(func() {
 				unixHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Write([]byte("yo"))
+					w.Write([]byte("yo")) //nolint:errcheck
 				})
 				var err error
-				tmpdir, err = ioutil.TempDir(os.TempDir(), "ifrit-server-test")
+				tmpdir, err = os.MkdirTemp(os.TempDir(), "ifrit-server-test")
 				Ω(err).ShouldNot(HaveOccurred())
 
 				socketPath = path.Join(tmpdir, "ifrit.sock")
@@ -67,7 +67,7 @@ var _ = Describe("HttpServer", func() {
 				resp, err := httpGetUnix("unix://"+socketPath+"/", socketPath)
 
 				Ω(err).ShouldNot(HaveOccurred())
-				body, err := ioutil.ReadAll(resp.Body)
+				body, err := io.ReadAll(resp.Body)
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(body)).Should(Equal("yo"))
 			})
@@ -113,7 +113,7 @@ var _ = Describe("HttpServer", func() {
 
 					Ω(resp.err).ShouldNot(HaveOccurred())
 
-					body, err := ioutil.ReadAll(resp.response.Body)
+					body, err := io.ReadAll(resp.response.Body)
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(body)).Should(Equal("yo"))
 				})
@@ -148,7 +148,7 @@ var _ = Describe("HttpServer", func() {
 
 		Context("when the server fails to start", func() {
 			BeforeEach(func() {
-				address = fmt.Sprintf("127.0.0.1:80")
+				address = "127.0.0.1:80"
 				server = http_server.New(address, handler)
 			})
 
@@ -173,7 +173,7 @@ var _ = Describe("HttpServer", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				tlsConfig = &tls.Config{
-					InsecureSkipVerify: true,
+					InsecureSkipVerify: true, // nolint:gosec
 				}
 
 				serverTlsConfig := &tls.Config{
@@ -181,9 +181,9 @@ var _ = Describe("HttpServer", func() {
 				}
 
 				unixHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Write([]byte("yo"))
+					w.Write([]byte("yo")) //nolint:errcheck
 				})
-				tmpdir, err = ioutil.TempDir(os.TempDir(), "ifrit-server-test")
+				tmpdir, err = os.MkdirTemp(os.TempDir(), "ifrit-server-test")
 				Ω(err).ShouldNot(HaveOccurred())
 
 				socketPath = path.Join(tmpdir, "ifrit.sock")
@@ -200,7 +200,7 @@ var _ = Describe("HttpServer", func() {
 
 				resp, err := httpTLSGetUnix("unix://"+socketPath+"/", socketPath, tlsConfig)
 				Ω(err).ShouldNot(HaveOccurred())
-				body, err := ioutil.ReadAll(resp.Body)
+				body, err := io.ReadAll(resp.Body)
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(string(body)).Should(Equal("yo"))
 			})
@@ -223,7 +223,7 @@ var _ = Describe("HttpServer", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				tlsConfig = &tls.Config{
-					InsecureSkipVerify: true,
+					InsecureSkipVerify: true, // nolint:gosec
 				}
 
 				serverTlsConfig := &tls.Config{
@@ -262,7 +262,7 @@ var _ = Describe("HttpServer", func() {
 
 					Ω(resp.err).ShouldNot(HaveOccurred())
 
-					body, err := ioutil.ReadAll(resp.response.Body)
+					body, err := io.ReadAll(resp.response.Body)
 					Ω(err).ShouldNot(HaveOccurred())
 					Ω(string(body)).Should(Equal("yo"))
 				})

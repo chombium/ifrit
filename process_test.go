@@ -41,8 +41,8 @@ var _ = Describe("Process", func() {
 				It("returns the run result upon completion", func() {
 					err1 := <-errChan
 					err2 := <-errChan
-					Ω(err1).Should(Equal(test_helpers.PingerExitedFromPing))
-					Ω(err2).Should(Equal(test_helpers.PingerExitedFromPing))
+					Ω(err1).Should(Equal(test_helpers.ErrPingerExitedFromPing))
+					Ω(err2).Should(Equal(test_helpers.ErrPingerExitedFromPing))
 				})
 			})
 		})
@@ -54,7 +54,7 @@ var _ = Describe("Process", func() {
 
 			It("sends the signal to the runner", func() {
 				err := <-pingProc.Wait()
-				Ω(err).Should(Equal(test_helpers.PingerExitedFromSignal))
+				Ω(err).Should(Equal(test_helpers.ErrPingerExitedFromSignal))
 			})
 		})
 	})
@@ -63,11 +63,11 @@ var _ = Describe("Process", func() {
 		var proc ifrit.Process
 
 		BeforeEach(func() {
-			proc = ifrit.Invoke(test_helpers.NoReadyRunner)
+			proc = ifrit.Invoke(test_helpers.ErrNoReadyRunner)
 		})
 
 		It("waits normally", func() {
-			Ω(<-proc.Wait()).Should(Equal(test_helpers.NoReadyExitedNormally))
+			Ω(<-proc.Wait()).Should(Equal(test_helpers.ErrNoReadyExitedNormally))
 		})
 	})
 })

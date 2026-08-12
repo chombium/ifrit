@@ -25,7 +25,7 @@ var _ = Describe("Parallel Group", func() {
 		childRunner2 *fake_runner.TestRunner
 		childRunner3 *fake_runner.TestRunner
 
-		Δ time.Duration = 10 * time.Millisecond
+		totalDuration = 10 * time.Millisecond
 	)
 
 	BeforeEach(func() {
@@ -116,7 +116,7 @@ var _ = Describe("Parallel Group", func() {
 				})
 
 				It("does not exit", func() {
-					Consistently(groupProcess.Wait(), Δ).ShouldNot(Receive())
+					Consistently(groupProcess.Wait(), totalDuration).ShouldNot(Receive())
 				})
 
 				Describe("when another process exits", func() {
