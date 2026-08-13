@@ -11,7 +11,7 @@ import (
 	"github.com/tedsuo/ifrit/fake_runner"
 	"github.com/tedsuo/ifrit/grouper"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -27,7 +27,7 @@ var _ = Describe("QueueQueued", func() {
 		childRunner2 *fake_runner.TestRunner
 		childRunner3 *fake_runner.TestRunner
 
-		Δ time.Duration = 10 * time.Millisecond
+		totalDuration = 10 * time.Millisecond
 	)
 
 	Describe("Start", func() {
@@ -67,19 +67,19 @@ var _ = Describe("QueueQueued", func() {
 
 		It("runs the first runner, then the second, then the third, then becomes ready", func() {
 			Eventually(childRunner1.RunCallCount).Should(Equal(1))
-			Consistently(childRunner2.RunCallCount, Δ).Should(BeZero())
-			Consistently(started, Δ).ShouldNot(BeClosed())
+			Consistently(childRunner2.RunCallCount, totalDuration).Should(BeZero())
+			Consistently(started, totalDuration).ShouldNot(BeClosed())
 
 			childRunner1.TriggerReady()
 
 			Eventually(childRunner2.RunCallCount).Should(Equal(1))
-			Consistently(childRunner3.RunCallCount, Δ).Should(BeZero())
-			Consistently(started, Δ).ShouldNot(BeClosed())
+			Consistently(childRunner3.RunCallCount, totalDuration).Should(BeZero())
+			Consistently(started, totalDuration).ShouldNot(BeClosed())
 
 			childRunner2.TriggerReady()
 
 			Eventually(childRunner3.RunCallCount).Should(Equal(1))
-			Consistently(started, Δ).ShouldNot(BeClosed())
+			Consistently(started, totalDuration).ShouldNot(BeClosed())
 
 			childRunner3.TriggerReady()
 
@@ -128,7 +128,7 @@ var _ = Describe("QueueQueued", func() {
 				})
 
 				It("does not exit", func() {
-					Consistently(groupProcess.Wait(), Δ).ShouldNot(Receive())
+					Consistently(groupProcess.Wait(), totalDuration).ShouldNot(Receive())
 				})
 
 				Describe("when another process exits", func() {
@@ -272,7 +272,7 @@ var _ = Describe("QueueQueued", func() {
 					select {
 					case s := <-signals:
 						receivedSignals <- s
-					case _ = <-done:
+					case <-done:
 						break L
 					}
 				}

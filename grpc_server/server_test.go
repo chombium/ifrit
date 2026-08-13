@@ -1,21 +1,22 @@
 package grpc_server_test
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"os"
 	"path"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
 	"github.com/tedsuo/ifrit/grpc_server"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
@@ -38,11 +39,11 @@ var _ = Describe("GRPCServer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		tlsConfig = &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: true, //nolint:gosec
 			Certificates:       []tls.Certificate{tlsCert},
 		}
 
-		listenAddress = fmt.Sprintf("localhost:%d", 10000+GinkgoParallelNode())
+		listenAddress = fmt.Sprintf("localhost:%d", 10000+GinkgoParallelProcess())
 	})
 
 	Context("given an instatiated runner", func() {
@@ -58,7 +59,7 @@ var _ = Describe("GRPCServer", func() {
 		})
 
 		It("serves on the listen address", func() {
-			conn, err := grpc.Dial(listenAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+			conn, err := grpc.NewClient(listenAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 			Expect(err).NotTo(HaveOccurred())
 
 			helloClient := helloworld.NewGreeterClient(conn)
@@ -95,7 +96,8 @@ var _ = Describe("GRPCServer", func() {
 		})
 
 		It("serves on the listen address", func() {
-			conn, err := grpc.Dial(listenAddress, grpc.WithInsecure())
+
+			conn, err := grpc.NewClient(listenAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			Expect(err).NotTo(HaveOccurred())
 
 			helloClient := helloworld.NewGreeterClient(conn)
@@ -154,9 +156,11 @@ var _ = Describe("GRPCServer", func() {
 		Context("when the registrar has bad parameters", func() {
 			BeforeEach(func() {
 				runner = grpc_server.NewGRPCServer(listenAddress, tlsConfig, &server{}, func(a, b int) {})
+				err = runner.(interface{ Validate() error }).Validate()
 			})
 			It("fails", func() {
-				Expect(err.Error()).To(ContainSubstring("first parameter must be `*grpc.Server` but is int"))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("first parameter must be `*grpc.Server` or `grpc.ServiceRegistrar` but is int"))
 			})
 		})
 
@@ -165,7 +169,7 @@ var _ = Describe("GRPCServer", func() {
 				runner = grpc_server.NewGRPCServer(listenAddress, tlsConfig, &server{}, func(a, b int) {})
 			})
 			It("fails", func() {
-				Expect(err.Error()).To(ContainSubstring("first parameter must be `*grpc.Server` but is int"))
+				Expect(err.Error()).To(ContainSubstring("first parameter must be `*grpc.Server` or `grpc.ServiceRegistrar` but is int"))
 			})
 		})
 
@@ -218,7 +222,9 @@ var _ = Describe("GRPCServer", func() {
 })
 
 // server is used to implement helloworld.GreeterServer.
-type server struct{}
+type server struct {
+	helloworld.UnimplementedGreeterServer
+}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {

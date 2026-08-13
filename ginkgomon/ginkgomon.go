@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -131,7 +131,7 @@ func (r *Runner) Run(sigChan <-chan os.Signal, ready chan<- struct{}) error {
 		startCheckTimeout = time.After(startCheckDuration)
 	}
 
-	detectStartCheck := allOutput.Detect(r.StartCheck)
+	detectStartCheck := allOutput.Detect("%s", r.StartCheck)
 
 	for {
 		select {

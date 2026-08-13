@@ -67,10 +67,14 @@ func (s *grpcServerRunner) Validate() error {
 			registrarType.NumOut())
 	}
 
-	// registrar's first parameter type must be a grpc server
-	if reflect.TypeOf((*grpc.Server)(nil)) != registrarType.In(0) {
-		return fmt.Errorf("NewGRPCServer: type of `serverRegistrar`'s first parameter must be `*grpc.Server` but is %s",
-			registrarType.In(0))
+	// registrar's first parameter type must be a *grpc.Server or a grpc.ServiceRegistrar interface
+	firstParam := registrarType.In(0)
+	concreteServerType := reflect.TypeOf((*grpc.Server)(nil))
+	interfaceRegistrarType := reflect.TypeOf((*grpc.ServiceRegistrar)(nil)).Elem()
+
+	if firstParam != concreteServerType && firstParam != interfaceRegistrarType {
+		return fmt.Errorf("NewGRPCServer: type of `serverRegistrar`'s first parameter must be `*grpc.Server` or `grpc.ServiceRegistrar` but is %s",
+			firstParam)
 	}
 
 	// registrar's second parameter type must be implemented by handler type.

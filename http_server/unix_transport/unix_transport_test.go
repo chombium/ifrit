@@ -3,14 +3,14 @@ package unix_transport
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"time"
 
-	"github.com/nu7hatch/gouuid"
-	. "github.com/onsi/ginkgo"
+	"github.com/google/uuid"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 )
@@ -32,8 +32,7 @@ var _ = Describe("Unix transport", func() {
 		)
 
 		BeforeEach(func() {
-			uuid, err := uuid.NewV4()
-			Expect(err).NotTo(HaveOccurred())
+			uuid := uuid.New()
 
 			socket = fmt.Sprintf("/tmp/%s.sock", uuid)
 			unixSocketListener, err = net.Listen("unix", socket)
@@ -43,7 +42,10 @@ var _ = Describe("Unix transport", func() {
 
 			unixSocketServer.HTTPTestServer = &httptest.Server{
 				Listener: unixSocketListener,
-				Config:   &http.Server{Handler: unixSocketServer},
+				Config: &http.Server{
+					Handler:           unixSocketServer,
+					ReadHeaderTimeout: 2 * time.Second,
+				},
 			}
 			unixSocketServer.Start()
 
@@ -69,7 +71,7 @@ var _ = Describe("Unix transport", func() {
 			})
 
 			It("responds with correct body", func() {
-				bytes, err := ioutil.ReadAll(resp.Body)
+				bytes, err := io.ReadAll(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(bytes)).To(Equal("true"))
 			})
@@ -82,7 +84,7 @@ var _ = Describe("Unix transport", func() {
 			)
 
 			assertBodyEquals := func(body io.ReadCloser, expectedContent string) {
-				bytes, err := ioutil.ReadAll(body)
+				bytes, err := io.ReadAll(body)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(string(bytes)).To(Equal(expectedContent))
 
@@ -98,12 +100,12 @@ var _ = Describe("Unix transport", func() {
 				})
 
 				validateQueryParams := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-					Expect(req.URL.RawQuery).To(Equal("fromImage=ubunut&tag=latest"))
+					Expect(req.URL.RawQuery).To(Equal("fromImage=ubuntu&tag=latest"))
 				})
 
 				handleRequest := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 					w.Header().Set("Content-Type", "application/json")
-					w.Write([]byte(RespBody))
+					w.Write([]byte(RespBody)) //nolint:errcheck
 				})
 
 				unixSocketServer.AppendHandlers(
@@ -116,7 +118,7 @@ var _ = Describe("Unix transport", func() {
 					),
 				)
 				body := strings.NewReader(ReqBody)
-				req, err := http.NewRequest("POST", "unix://"+socket+"/containers/create?fromImage=ubunut&tag=latest", body)
+				req, err := http.NewRequest("POST", "unix://"+socket+"/containers/create?fromImage=ubuntu&tag=latest", body)
 				req.Header.Add("Content-Type", "application/json")
 				Expect(err).NotTo(HaveOccurred())
 
@@ -139,11 +141,11 @@ var _ = Describe("Unix transport", func() {
 
 		})
 
-		Context("when socket in reques URI is incorrect", func() {
+		Context("when socket in request URI is incorrect", func() {
 			It("errors", func() {
 				resp, err = client.Get("unix:///fake/socket.sock/_ping")
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Wrong unix socket"))
+				Expect(err.Error()).To(ContainSubstring("wrong unix socket"))
 			})
 		})
 
